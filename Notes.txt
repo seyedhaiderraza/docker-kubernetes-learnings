@@ -1,0 +1,209 @@
+docker is a software which give runtime environment to run apps 
+apps are packaged with docker settings
+these environments are known as containers
+
+containers => app code + dependencies packaged environment specific to application
+
+VM => server having os, libraries
+
+dockr = layer between containerised apps  <- and -> host OS + physical infra
+
+Docker install:
+1. download and install Docker in Windows thats it (+ WSL install)
+2. bash -> $ docker
+
+Docker Image:
+-it is a template => Appcode + Os + Software+ dependencies
+-from image we pull out container to run the image in it
+steps:
+1. dwnlad image from hub.docker.com
+2. docker pull <image> 
+3. docker images       <- check images
+
+.......
+run container <- running instance of an image
+1. docker run -d nginx:latest     <- runs a container for this image
+this will run on but need to map a port to this 80/tcp port of nginx containerto access from browser
+-d runs container in detached mode <- means screen will not hang in bash
+2. docker container ps            <- shows all the containers infromation
+
+-docker stop <container_id>
+..................
+change port no. of container run
+
+docker run -d nginx:latest 
+this will run on but need to map a port to this
+
+ 80/tcp port of nginx containerto access from browser
+
+docker run -d -p 8080:80 nginx:latest 
+maps localhost:8080 -> 80 tcp port of image container
+
+now we can open localhost:8080
+
+we can add multiple ports as well
+...........................
+delete container
+$ docker rm <containerid>
+..........................
+docker container commands
+docker ps -a 
+-displays containers id, name, port etc
+docker ps -aq 
+-displays container ids only
+.......
+remove all docker images/running not running : 
+
+$ docker rm -f $(docker ps -aq)
+.........
+naming containers:
+docker run --name <name> -d -p 8080:80 nginx:latest
+
+stop container using name
+docker stop <name>
+................
+docker volumes
+- allow sharing of resources between host and container
+for examples your machine and nginx:latest container
+
+tocreate a volume between local host and nginx container:
+
+docker run --name     website -v $(pwd):/usr/share/nginx/html:ro -d -p 8080:80 nginx:latest
+
+here pwd is not correctly interpreted by docker so make sure to give full path as -v d:/study/code\ repositories/docker/website instead of $(pwd)
+-v -> volume
+$(pwd) -> from host dir
+:/usr/share/nginx/html:ro  -> to nginx continaer dir
+
+...................
+
+difference between docker run and docker start
+run -> creates a new containerstart -> runs already existing container
+
+ex: 
+docker run --name web -d -p 8080:80 nginx:latest
+
+docker start web
+or
+docker start <containerid>
+..................................
+to run an image with volume connect to manual directory containing index.html 
+and
+goto container directory and create a new about.html which reflects in host path as well (contianing index.html )
+
+1. docker run -d -p 8080:80 --name homepage -v d:/study/code\ repositories/docker/website:usr/share/nginx/html nginx:latest
+2. install winpty + set in path
+3. winpty docker exec -it homepage bash
+
+# cd usr/share/nginx/html
+# touch about.html
+#exit 
+
+now about.html will be created in both container path and host path
+...............
+volumes between containers
+homepage = contianer 1 name
+
+creater a new image container with following commands
+
+docker run -p 8081:80 -d --name homepage2 --volumes-from homepage nginx
+.................
+Docker with NodeExpress API 
+1. mkdir node-epr-API + cd
+2. npm init 
+3. index.js -> express api for '/' with resp.json({ name:data1,email: a@gmail.com }) + port listen: 3000
+4. Dockerfile -> 
+    -  FROM node:latest    <-- from where to build image (node:latest dockerised image)
+    - WORKDIR /app         <-- on app start this is from where index.js will be picked up
+    - ADD package*.json .    <-- copy this file from src to /app (which is .)
+    - RUN npm install        <--install dependencies
+    - ADD . .                <--add all dependencies, files compiled generated to /app (.) dir kind of a volume conneciton
+    - RUN npm install
+    - CMD node index.js      <-- run the application from CMD(this is given within docker bash)
+5. docker build -t nodeexpapi:latest .     <-- builds an image with name(lowercase):tag wit . indicating current dir as src
+6. docker run -d -p 8080:3000 --name container-custom-name nodeexpapi:latest     <-- runs container from nodeExprAPI with name container-custom-name at port 8080 in -d detached mode
+
+ delete all running contianers : docker rm -f $(docker ps -aq)
+ delete images                  : docker image rm -f imageID
+....................................
+dockerignore
+--> to ignore files while building an image
+like node_modules <- tkaes lot of space
+Dockerfile
+...........................
+caching:
+when we build an image and again build another image from same dockerised image like nodeit caches some steps like 
+WORKDIR /app
+ADD package*.json ./
+RUN npm install
+.........................
+Alpine
+it is a dockerised version of linux configuration which comes with docker images like node:lts-alpine, nginx:alpine
+it reduces file size for imagesto use simply use alpine verion as tag with image while building image
+example 
+docker pull node:lts-alpine
+or within Dockerfile
+
+-FROM node:lts-alpine
+
+$docker build -t image:latest
+..........................
+Tags and Versions
+
+1. we have an image
+$docker build -t image:latest
+- to create a tag for this as version 1 of my image
+2. $docker tag image:latest <custom-name>:<tag>
+ <custom-name>:<tag> --> custom-img:v1
+- this creates a tag which is shown as image in list of $docker image
+- once you delete original image it deletes tag as well
+3. we can spin up image-tag 
+$docker run -d -p 8080:3000 --name -tagimage-container-custom-name custom-img:v1
+
+this is helpful to create version of images
+
+4. for example if you made any new  changes for version 2 then repeat the above process and place your custom-image-name:<custom tag like v2>
+and make new image as docker build......
+.................................
+docker registry
+online docker hub where you need to create a new repository 
+within repo you can copy the command display to push the tag of image
+PUSH
+1. build image
+$ docker build -t custom-image
+2. create a tag for online push
+$ docker tag custom-image <username>/custom-image-tag:<tag-name> 
+3. docker push <username>/custom-image-tag:<tag-name> 
+<-- will create a repo on docker hub with  name - custom-image-tag for <username> and push <tag-name> as pushed image
+PULL 
+1. delete local tag and also image
+$docker image rm -f <username>/custom-image-tag:<tag-name> 
+$docker image rm -f custom-image
+$docker images   <- to verify current images
+2. $docker pull <username>/custom-image-tag:<tag-name> 
+$docker images       <- will show the available images alongwith new plled image
+
+
+PS: sometimes bash is not available to install it use:
+
+RUN apk update && apk add bash
+................................
+
+Docker - inspect, log , exec
+
+$docker inspect <imageid> 
+$docker inspect <running-container-id>
+- shows details such as id, tag, comment, cmd command for bash used for this image, created
+
+docker log  : only for running containers
+
+docker log <containerid>
+will show any logs from within the application run
+.......................
+docker exec:
+using this we can go inside a running container to see the file structures
+
+docker exec <containerid> OR <container-name> bash
+* make sure bash install script is included in Dockerfile of image:
+RUN apk update && apk add bash
+..........................
