@@ -1,0 +1,116 @@
+Need?
+If I am running my docker container-> 
+.traffic can increase => we can create more containers manually => time consuming
+if an image is updated with new code => need to update all other containers
+this problem is solved with k8s which has a master 
+=> scheduler, api layer, configMap
+k8s consist of 
+a Cluster consisiting of a Master + several Nodes 
+Each Node => several pods + internal ips, services+external ip 
+Pods run one container per pod 
+each Node running service can interact with pod containers running app  using interal ip 
+Each service has external ip which user can use to interact with app in  pod container
+k8s - 
+-manages load balancing of containers by ability to create multiple pods easily
+- use yaml file to pull image and create a container running on a pod 
+within yaml
+-we can define service config and contianer config for image 
+-internal ports, external port, app name, image to be pulled for making app
+
+
+kubernetes?
+a software to provide orchestration process to :
+- spin up multiple containers at a time
+- scale up container pods easily 
+- use yaml configuration(image, app, replica no., ports etc) single file to deploy your app
+- scheduler to handle loadbalancing between different replicas of containers-pod running
+- api layer to use kubectl for user to interact with Master
+
+architecture?
+pod, workers, master, cluster?
+Pod, Service, ingress, node ?
+pod ip addres, node ip address
+exposing the pods
+configMap, Secret
+
+has Clusters
+    -has Master Node, worker Nodes 
+        - MAster node has api layer, etcd, scheduler, etc
+        - Worker Nodes
+            - Have pods running containers + internal ip+port 
+                -Secret yaml file containing username password
+            - have docker configuration 
+            - have services = abstraction w external ip+port to give interaction to user
+                -ConfigMap yaml 
+                    - define which app to connect to (means pod)
+                    - on which port to run 
+                    - on which port service app is running which connects with interal ip of app pod
+                    - nodePort
+
+
+...
+volumes
+deployments
+stateful Sets 
+...
+minikube
+: a k8s tool to create a  local cluster
+
+to get minikube for windows:
+-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-windows-amd64.exe && mv minikube-windows-amd64.exe minikube.exe && chmod +x minikube.exe
+
+to start minikube cluster based on k8s:
+minikube start
+
+kubectl?
+- kubectl version
+
+& create
+to create a pod using nginx image:
+- kubectl create depoyment nginx-depl --image=nginx
+
+    - debug Pod
+- kubectl get pod
+- kubectl describe pod <podid>
+- kubectl logs nginx-depl-56cb8b6d7
+
+to go inside a running container pod:
+-kubectl exec -it nginx-depl-56cb8b6d7-rbdkc -- bin/bash
+    - apply
+using a yaml file we use apply to create a service(service abstraction to a service pod)
+ or a deployment(contianer spin up on a pod)
+- kubectl apply -f ninx-deploy.yaml
+
+    - get pods/replicas/service/all
+- kubectl get all
+= shows all pods, services, replicas created and running
+
+    - get all | grep <appname>
+= gets all pods/services/replicas related to only the str pattern name <appname>
+- kubectl get all | grep nginx
+
+YAML :
+apiVersion |    kind |  metadata : name |   
+
+spec | selector : matchlabels: app , replicas: |
+
+    | template : metadata: labels: app,
+    | spec : containers: name, image, ports
+etc ...
+
+
+...
+Mongodb and mongo-express
+deployment using k8s
+-mongodb deployment file yaml
+    -image, port, username, password
+-mongodb service yaml (internal)
+-Secret
+
+-mongo-express deployment yaml
+-mongo-express-service yaml (external)
+    -image, port, internal mongodb app connect
+-configMap
+-(external so=>) nodePort
+
+

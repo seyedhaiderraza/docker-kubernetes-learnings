@@ -1,3 +1,18 @@
+Need?
+traditionally:
+-INfra/hardware has  single OS installed
+-for each app specific Os we install a VM like hyperviosr/vmware etc
+-these VMs are configured and made to run our app -> heavyweight, slow
+
+Dcokernally:
+- instead of a vmwarewe use Docker Engine
+- using Docker engine we run containers 
+- containers - have app and info on dependencies, OS, infra-needed
+-simply we run containers, and can run multiple containers
+- portable, lightweight, fast, easy
+-each container is from a dockerized image of a sample-app: node,nginx etc
+
+
 docker is a software which give runtime environment to run apps 
 apps are packaged with docker settings
 these environments are known as containers
