@@ -112,5 +112,90 @@ deployment using k8s
     -image, port, internal mongodb app connect
 -configMap
 -(external so=>) nodePort
+---------------------
+Steps:
+1. POD creation:
+first define a YAML file for mongodb app to run on pod with internal ip
+- mongo-deployment.yaml => should contain:
+    - kind: Deployment            -- for container pod
+    - name                        -- name of container 
+    - app                         --name of app from image
+    -container name, image, containerPort    -- image to pull, default port where mongodb app runs
+    -env username, password
+        -valueFrom
+            -secretKeyRef   --secret.yaml file name and 'key' to use as value (username/password)
+2. Service to Pod container:
+which acts as service to interact with for another service pod to run
+    -kind: Service
+-metadata:
+  name: mongodb-service
+-spec:
+  selector:
+    app: mongodb
+  -ports:
+  - protocol: TCP
+    port: 27017
+    targetPort: 27017
+
+3. Secret :
+    containing username and password
+
+4. mongo-express container pod to interact with mongodb DB container pod
+     - kind: Service            -- for container pod
+    - name                        -- name of container 
+    - app                         --name of app from image
+    -container name, image, containerPort    -- image to pull, default port where mongo-express app runs
+    -env 
+        -username, password
+        -valueFrom
+            -secretKeyRef   --secret.yaml file name and 'key' to use as value (username/password)
+        (for configMap)
+        -name: 
+          valueFrom:
+            configMapKeyRef:
+                name: mongodb-configmap
+                key: database_url
+5. mongo-express Service
+which acts as service to interact with for another service pod to run
+    -kind: Service
+-metadata:
+  name: mongo-express-service
+-spec:
+  selector:
+    app: mongo-express
+  -ports:
+  - protocol: TCP
+    port: 8081
+    targetPort: 8081
+    type: loadBalancer
 
 
+6. ConfigMap for mong-express service:
+    - kind: ConfigMap
+    - name: of configmap file 
+    data -> coming from database_url which is service pod of mongodb-service pod
+    -database_url: mongodb-service
+
+START deploying containers and services!
+
+1. secret:
+    kubectl apply -f mongo-secret.yaml
+2. mongodb container pod:
+    kubectl apply -f mongo-deployment.yaml
+3. mongodb service container pod :
+     kubectl apply -f mongodb-service-deployment.yaml(sometimes within mongo-dpeloyment.yaml below --)
+>>
+4. configMap:
+    kubectl apply -f mongo-configmap.yaml 
+5. mongo-express container pod:
+     kubectl apply -f mongo-express.yaml
+6. mongo-express service container pod:
+     kubectl apply -f mongo-express-service.yaml
+CHECK?
+kubectl get all | grep mongo
+
+run app(mongo service) using minikube:
+-minikube service mongo-express-service
+
+
+///////////////////////////end//////////////////////////
